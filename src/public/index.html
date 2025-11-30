@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareOn POS - 디지털 트윈 OS</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* 헤더 */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 1px solid #333;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00d9ff;
+    }
+
+    .logo span {
+      color: #ff6b6b;
+    }
+
+    .status-badge {
+      padding: 8px 16px;
+      background: #27ae60;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+
+    .status-badge.test {
+      background: #f39c12;
+    }
+
+    /* 메인 그리드 */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 20px;
+    }
+
+    /* 카드 */
+    .card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #0f3460;
+    }
+
+    .card-title {
+      font-size: 16px;
+      color: #888;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 통계 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: #0f3460;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #00d9ff;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #888;
+      margin-top: 5px;
+    }
+
+    /* 숫자패드 */
+    .numpad-section {
+      margin-bottom: 20px;
+    }
+
+    .amount-display {
+      background: #0f3460;
+      padding: 25px;
+      border-radius: 10px;
+      text-align: right;
+      margin-bottom: 15px;
+    }
+
+    .amount-label {
+      font-size: 14px;
+      color: #888;
+    }
+
+    .amount-value {
+      font-size: 42px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .numpad button {
+      padding: 25px;
+      font-size: 24px;
+      border: none;
+      border-radius: 10px;
+      background: #0f3460;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .numpad button:hover {
+      background: #1a4a7a;
+    }
+
+    .numpad button:active {
+      transform: scale(0.95);
+    }
+
+    .numpad button.clear {
+      background: #c0392b;
+    }
+
+    .numpad button.backspace {
+      background: #7f8c8d;
+    }
+
+    /* 결제 버튼 */
+    .pay-button {
+      width: 100%;
+      padding: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #00d9ff, #0066ff);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 15px;
+    }
+
+    .pay-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(0, 217, 255, 0.4);
+    }
+
+    .pay-button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* 거래 내역 */
+    .transactions-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .transaction-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: #0f3460;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .transaction-item.success {
+      border-left: 3px solid #27ae60;
+    }
+
+    .transaction-item.failed {
+      border-left: 3px solid #e74c3c;
+    }
+
+    .transaction-amount {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .transaction-time {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .transaction-card {
+      font-size: 12px;
+      color: #00d9ff;
+    }
+
+    /* 빠른 금액 버튼 */
+    .quick-amounts {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .quick-btn {
+      padding: 10px 20px;
+      background: #0f3460;
+      border: 1px solid #1a4a7a;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-btn:hover {
+      background: #1a4a7a;
+    }
+
+    /* 로딩 */
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      display: none;
+    }
+
+    .loading.show {
+      display: flex;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #333;
+      border-top-color: #00d9ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* 알림 */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 30px;
+      background: #27ae60;
+      color: #fff;
+      border-radius: 8px;
+      font-size: 16px;
+      z-index: 1001;
+      display: none;
+    }
+
+    .toast.error {
+      background: #e74c3c;
+    }
+
+    .toast.show {
+      display: block;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    /* 시간대별 차트 */
+    .hourly-chart {
+      display: flex;
+      align-items: flex-end;
+      height: 100px;
+      gap: 4px;
+      margin-top: 15px;
+    }
+
+    .hourly-bar {
+      flex: 1;
+      background: linear-gradient(to top, #00d9ff, #0066ff);
+      border-radius: 4px 4px 0 0;
+      min-height: 4px;
+      transition: height 0.3s;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">Care<span>On</span> POS</div>
+      <div class="status-badge test" id="statusBadge">테스트 모드</div>
+    </header>
+
+    <!-- 통계 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="todayTotal">0</div>
+        <div class="stat-label">오늘 매출</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="todayCount">0</div>
+        <div class="stat-label">거래 건수</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="todayAvg">0</div>
+        <div class="stat-label">평균 객단가</div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <!-- 왼쪽: 결제 입력 -->
+      <div>
+        <div class="card numpad-section">
+          <div class="amount-display">
+            <div class="amount-label">결제 금액</div>
+            <div class="amount-value" id="amountDisplay">0원</div>
+          </div>
+
+          <div class="quick-amounts">
+            <button class="quick-btn" onclick="addAmount(1000)">+1,000</button>
+            <button class="quick-btn" onclick="addAmount(5000)">+5,000</button>
+            <button class="quick-btn" onclick="addAmount(10000)">+10,000</button>
+            <button class="quick-btn" onclick="addAmount(50000)">+50,000</button>
+          </div>
+
+          <div class="numpad">
+            <button onclick="appendDigit('1')">1</button>
+            <button onclick="appendDigit('2')">2</button>
+            <button onclick="appendDigit('3')">3</button>
+            <button onclick="appendDigit('4')">4</button>
+            <button onclick="appendDigit('5')">5</button>
+            <button onclick="appendDigit('6')">6</button>
+            <button onclick="appendDigit('7')">7</button>
+            <button onclick="appendDigit('8')">8</button>
+            <button onclick="appendDigit('9')">9</button>
+            <button class="clear" onclick="clearAmount()">C</button>
+            <button onclick="appendDigit('0')">0</button>
+            <button class="backspace" onclick="backspace()">←</button>
+          </div>
+
+          <button class="pay-button" id="payButton" onclick="startPayment()">
+            카드 결제
+          </button>
+        </div>
+
+        <!-- 시간대별 매출 -->
+        <div class="card">
+          <div class="card-title">시간대별 매출</div>
+          <div class="hourly-chart" id="hourlyChart"></div>
+        </div>
+      </div>
+
+      <!-- 오른쪽: 거래 내역 -->
+      <div class="card">
+        <div class="card-title">최근 거래</div>
+        <div class="transactions-list" id="transactionsList">
+          <div style="color: #888; text-align: center; padding: 40px;">
+            거래 내역이 없습니다
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 로딩 -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- 알림 -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // 상태
+    let currentAmount = 0;
+    let paymentWindow = null;
+
+    // 금액 표시 업데이트
+    function updateDisplay() {
+      document.getElementById('amountDisplay').textContent =
+        currentAmount.toLocaleString() + '원';
+      document.getElementById('payButton').disabled = currentAmount <= 0;
+    }
+
+    // 숫자 입력
+    function appendDigit(digit) {
+      if (currentAmount === 0 && digit === '0') return;
+      const newAmount = parseInt(currentAmount.toString() + digit);
+      if (newAmount <= 99999999) {
+        currentAmount = newAmount;
+        updateDisplay();
+      }
+    }
+
+    // 금액 추가
+    function addAmount(amount) {
+      const newAmount = currentAmount + amount;
+      if (newAmount <= 99999999) {
+        currentAmount = newAmount;
+        updateDisplay();
+      }
+    }
+
+    // 지우기
+    function clearAmount() {
+      currentAmount = 0;
+      updateDisplay();
+    }
+
+    // 백스페이스
+    function backspace() {
+      currentAmount = Math.floor(currentAmount / 10);
+      updateDisplay();
+    }
+
+    // 결제 시작
+    async function startPayment() {
+      if (currentAmount <= 0) {
+        showToast('결제 금액을 입력해주세요.', true);
+        return;
+      }
+
+      showLoading(true);
+
+      try {
+        // 결제 요청 생성
+        const response = await fetch('/api/payment/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: currentAmount,
+            goodsName: 'CareOn 주문'
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // 나이스페이 결제창 열기
+          openPaymentWindow(result.paymentParams);
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (error) {
+        showLoading(false);
+        showToast(error.message, true);
+      }
+    }
+
+    // 결제창 열기
+    function openPaymentWindow(params) {
+      // 폼 생성
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = 'https://web.nicepay.co.kr/v3/v3Payment.jsp';
+      form.target = 'nicepay_popup';
+
+      // 파라미터 추가
+      for (const key in params) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = params[key];
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+
+      // 팝업 열기
+      const width = 500;
+      const height = 700;
+      const left = (screen.width - width) / 2;
+      const top = (screen.height - height) / 2;
+
+      paymentWindow = window.open('', 'nicepay_popup',
+        `width=${width},height=${height},left=${left},top=${top}`);
+
+      form.submit();
+      form.remove();
+
+      // 팝업 닫힘 감지
+      const checkClosed = setInterval(() => {
+        if (paymentWindow && paymentWindow.closed) {
+          clearInterval(checkClosed);
+          showLoading(false);
+          loadStats();
+          loadTransactions();
+        }
+      }, 500);
+    }
+
+    // 결제 성공 콜백 (팝업에서 호출)
+    window.paymentSuccess = function(result) {
+      showLoading(false);
+      showToast(`결제 완료: ${parseInt(result.Amt).toLocaleString()}원`);
+      clearAmount();
+      loadStats();
+      loadTransactions();
+    };
+
+    // 결제 실패 콜백
+    window.paymentFailed = function() {
+      showLoading(false);
+      showToast('결제가 취소되었습니다.', true);
+    };
+
+    // 통계 로드
+    async function loadStats() {
+      try {
+        const response = await fetch('/api/payment/stats');
+        const data = await response.json();
+
+        if (data.success) {
+          document.getElementById('todayTotal').textContent =
+            data.today.total.toLocaleString() + '원';
+          document.getElementById('todayCount').textContent =
+            data.today.count + '건';
+          document.getElementById('todayAvg').textContent =
+            Math.round(data.today.average).toLocaleString() + '원';
+
+          // 시간대별 차트 업데이트
+          updateHourlyChart(data.hourly);
+        }
+      } catch (error) {
+        console.error('통계 로드 실패:', error);
+      }
+    }
+
+    // 시간대별 차트 업데이트
+    function updateHourlyChart(hourlyData) {
+      const chart = document.getElementById('hourlyChart');
+      const maxTotal = Math.max(...hourlyData.map(h => h.total), 1);
+
+      chart.innerHTML = '';
+      for (let i = 0; i < 24; i++) {
+        const hourData = hourlyData.find(h => parseInt(h.hour) === i);
+        const total = hourData ? hourData.total : 0;
+        const height = (total / maxTotal) * 100;
+
+        const bar = document.createElement('div');
+        bar.className = 'hourly-bar';
+        bar.style.height = `${Math.max(height, 4)}%`;
+        bar.title = `${i}시: ${total.toLocaleString()}원`;
+        chart.appendChild(bar);
+      }
+    }
+
+    // 거래 내역 로드
+    async function loadTransactions() {
+      try {
+        const response = await fetch('/api/payment/transactions?limit=10');
+        const data = await response.json();
+
+        const list = document.getElementById('transactionsList');
+
+        if (data.success && data.transactions.length > 0) {
+          list.innerHTML = data.transactions.map(tx => `
+            <div class="transaction-item ${tx.status === 'completed' ? 'success' : 'failed'}">
+              <div>
+                <div class="transaction-amount">${parseInt(tx.amount).toLocaleString()}원</div>
+                <div class="transaction-card">${tx.card_name || tx.pay_method || '-'}</div>
+              </div>
+              <div class="transaction-time">
+                ${new Date(tx.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          `).join('');
+        } else {
+          list.innerHTML = '<div style="color: #888; text-align: center; padding: 40px;">거래 내역이 없습니다</div>';
+        }
+      } catch (error) {
+        console.error('거래 내역 로드 실패:', error);
+      }
+    }
+
+    // 상태 확인
+    async function checkStatus() {
+      try {
+        const response = await fetch('/api/status');
+        const data = await response.json();
+
+        const badge = document.getElementById('statusBadge');
+        if (data.nicepay.mode === 'TEST') {
+          badge.textContent = '테스트 모드';
+          badge.className = 'status-badge test';
+        } else {
+          badge.textContent = '운영 중';
+          badge.className = 'status-badge';
+        }
+      } catch (error) {
+        console.error('상태 확인 실패:', error);
+      }
+    }
+
+    // 로딩 표시
+    function showLoading(show) {
+      document.getElementById('loading').classList.toggle('show', show);
+    }
+
+    // 토스트 알림
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast' + (isError ? ' error' : '') + ' show';
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // 초기화
+    document.addEventListener('DOMContentLoaded', () => {
+      updateDisplay();
+      checkStatus();
+      loadStats();
+      loadTransactions();
+
+      // 30초마다 갱신
+      setInterval(() => {
+        loadStats();
+        loadTransactions();
+      }, 30000);
+    });
+
+    // 키보드 입력
+    document.addEventListener('keydown', (e) => {
+      if (e.key >= '0' && e.key <= '9') {
+        appendDigit(e.key);
+      } else if (e.key === 'Backspace') {
+        backspace();
+      } else if (e.key === 'Escape') {
+        clearAmount();
+      } else if (e.key === 'Enter' && currentAmount > 0) {
+        startPayment();
+      }
+    });
+  </script>
+</body>
+</html>
